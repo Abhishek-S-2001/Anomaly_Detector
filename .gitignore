@@ -59,4 +59,4 @@ pnpm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
-*.swp
+*.swpas 

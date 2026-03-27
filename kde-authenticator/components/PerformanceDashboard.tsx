@@ -47,7 +47,7 @@ export default function PerformanceDashboard({ refreshTrigger }: { refreshTrigge
         </div>
       </div>
 
-      <div className="w-[1400px] grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="w-[1000px] grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Metric Cards */}
         <div className="col-span-1 md:col-span-2 grid grid-cols-2 gap-6">
           <div className="bg-[#111827] border-l-2 border-cyan-400 p-6 rounded shadow-lg flex flex-col justify-between h-40">
@@ -85,7 +85,7 @@ export default function PerformanceDashboard({ refreshTrigger }: { refreshTrigge
         </div>
 
         {/* KDE Behavioral Cloud Component */}
-        <div className="col-span-1 md:col-span-2 bg-[#111827] w-3xl border border-slate-800 p-6 rounded shadow-lg h-full min-h-[600px] flex flex-col">
+        <div className="col-span-1 md:col-span-2 bg-[#111827] w-[820px] border border-slate-800 p-6 rounded shadow-lg h-full min-h-[600px] flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">KDE Behavioral Cloud</p>
             <button onClick={fetchMetrics} className="text-slate-600 hover:text-cyan-400 transition-colors">↻ REFRESH</button>
@@ -97,7 +97,7 @@ export default function PerformanceDashboard({ refreshTrigger }: { refreshTrigge
                KDE_BANDWIDTH: 0.25
              </div>
              {metrics.kde_plot ? (
-                <img src={metrics.kde_plot} alt="KDE Cloud" className="w-full h-full object-contain" />
+                <img src={metrics.kde_plot} alt="KDE Cloud" className=" w-full h-full object-contain" />
               ) : (
                 "[ Loading KDE Cloud Scatter Plot... ]"
               )}
