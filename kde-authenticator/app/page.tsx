@@ -9,6 +9,8 @@ import PerformanceDashboard from '@/components/PerformanceDashboard';
 const TARGET_PASSPHRASE = "secure_KDE_login";
 const REQUIRED_SAMPLES = 5;
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 export default function KeystrokeAuthenticator() {
   const [isTestingAsGenuine, setIsTestingAsGenuine] = useState<boolean>(true);
   const [mode, setMode] = useState<'registration' | 'live'>('registration');
@@ -57,7 +59,7 @@ export default function KeystrokeAuthenticator() {
 
         if (newSamples.length === REQUIRED_SAMPLES) {
           try {
-            const response = await fetch("http://127.0.0.1:8000/api/register", {
+            const response = await fetch(`${API_URL}/api/register`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -84,7 +86,7 @@ export default function KeystrokeAuthenticator() {
         setAuthStatus('analyzing');
         
         try {
-          const response = await fetch("http://127.0.0.1:8000/api/authenticate", {
+          const response = await fetch(`${API_URL}/api/authenticate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

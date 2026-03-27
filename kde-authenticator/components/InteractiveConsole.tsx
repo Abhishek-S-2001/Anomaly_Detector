@@ -12,8 +12,8 @@ interface InteractiveConsoleProps {
   requiredSamples: number;
   targetPassphrase: string;
   authStatus: 'idle' | 'analyzing' | 'success' | 'failed';
-  isTestingAsGenuine: boolean;                           // <-- NEW PROP
-  setIsTestingAsGenuine: (val: boolean) => void;         // <-- NEW PROP
+  isTestingAsGenuine: boolean;
+  setIsTestingAsGenuine: (val: boolean) => void;
 }
 
 export default function InteractiveConsole({

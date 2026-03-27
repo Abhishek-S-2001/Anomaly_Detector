@@ -2,9 +2,40 @@
 
 A real-time, behavioral biometric authentication system that verifies user identity based on *how* they type, rather than just *what* they type. This project leverages non-parametric machine learning (Kernel Density Estimation) to model unique typing rhythms and continuously adapts to human behavioral drift over time.
 
+## 🔗 Live Demo
+
+Experience the biometric authenticator in real-time:
+
+* **Frontend UI (Next.js):** [https://kde-authenticator.vercel.app](https://kde-authenticator.vercel.app)
+* **Backend API (FastAPI):** [https://anomaly-detector-x35v.onrender.com/](https://anomaly-detector-x35v.onrender.com/)
+
+*(Note: The Render backend spins down after 15 minutes of inactivity on the free tier. If the API seems slow on the first attempt, give it 30-60 seconds to wake up!)*
+
 ![System Dashboard](./kde-authenticator/public/KDE_Dashboard.png)
 
 ![Performance Dashboard](./kde-authenticator/public/Performance_Dashboard.png)
+
+## ☁️ Cloud Deployment (Production)
+
+This application is fully configured for cloud deployment using a decoupled microservices architecture.
+
+### Backend (Render)
+The FastAPI backend is hosted on Render as a Web Service.
+1. **Root Directory:** `kde-backend`
+2. **Build Command:** `pip install -r requirements.txt`
+3. **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. **Environment Variables:**
+   * `PYTHON_VERSION`: `3.11.8`
+   * `SUPABASE_URL`: `<your-supabase-url>`
+   * `SUPABASE_KEY`: `<your-supabase-key>`
+5. **Health Check:** A root endpoint (`/`) and `/api/health` are configured to return a 200 OK status to monitor container health.
+
+### Frontend (Vercel)
+The Next.js frontend is hosted on Vercel's Edge Network.
+1. **Framework Preset:** Next.js
+2. **Root Directory:** `kde-authenticator`
+3. **Environment Variables:**
+   * `NEXT_PUBLIC_API_URL`: `<your-live-render-backend-url>`
 
 ## 🧠 Core Features
 
