@@ -58,6 +58,14 @@ class MetricsPayload(BaseModel):
 
 # --- ENDPOINTS ---
 
+@app.get("/")
+async def root():
+    return {
+        "status": "online",
+        "service": "KDE Biometrics API",
+        "version": "1.0.0"
+    }
+
 @app.post("/api/register")
 async def register_user(payload: RegistrationPayload):
     if len(payload.samples) < 3:
