@@ -1,0 +1,62 @@
+# ==========================================
+# 🛑 ENVIRONMENT VARIABLES (CRITICAL)
+# ==========================================
+.env
+.env.*
+!.env.example
+!.env.template
+
+# ==========================================
+# 🐍 PYTHON BACKEND (kde-backend)
+# ==========================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Project-Specific Temporary Files & ML Models
+temp_downloads/
+temp_models/
+*.pkl
+
+# Logs and Databases
+*.log
+*.sqlite3
+.pytest_cache/
+
+# ==========================================
+# ⚛️ NEXT.JS FRONTEND (kde-authenticator)
+# ==========================================
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js Build Output
+.next/
+out/
+build/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vercel / Deployment
+.vercel
+
+# ==========================================
+# 💻 OS & EDITOR FILES
+# ==========================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
