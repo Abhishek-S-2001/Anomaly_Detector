@@ -4,107 +4,57 @@ import { useEffect, useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
-export default function PerformanceDashboard({ refreshTrigger }: { refreshTrigger: number }) {
-  const [metrics, setMetrics] = useState({
-    auth_rate: 0.0,
-    blocked_rate: 0.0,
-    kde_plot: null as string | null,
-    roc_plot: null as string | null,
-  });
-  const [loading, setLoading] = useState(true);
+export default function PerformanceDashboard({ username, refreshTrigger }: { username: string, refreshTrigger: number }) {
+  const [kdePlot, setKdePlot] = useState<string | null>(null);
 
   const fetchMetrics = async () => {
+    if (!username) return;
+    
     try {
       const res = await fetch(`${API_URL}/api/metrics`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: "admin_user" })
+        body: JSON.stringify({ username })
       });
       const data = await res.json();
-      if (data.status === "success") {
-        setMetrics(data);
+      if (data.status === "success" && data.kde_plot) {
+        setKdePlot(data.kde_plot);
       }
     } catch (err) {
       console.error("Failed to fetch metrics", err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Fetch metrics on mount
   useEffect(() => {
     fetchMetrics();
-    // We removed the setInterval. It will now instantly update via the refreshTrigger!
-  }, [refreshTrigger]);
+  }, [refreshTrigger, username]);
 
   return (
-    <div className="pt-8 border-t border-slate-800 space-y-8">
-      <div className="flex items-end justify-between">
+    <div className="w-full h-full border border-slate-800 bg-[#0b0f19] flex flex-col md:flex-row p-4 shadow-inner rounded-xl overflow-hidden relative">
+      <div className="md:w-64 flex flex-col justify-between mb-4 md:mb-0 md:pr-6 md:border-r border-slate-800 shrink-0">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tighter uppercase">System Performance Dashboard</h2>
-          <p className="text-xs text-slate-500 uppercase tracking-widest mt-1">Real-Time Inference and Model Accuracy Telemetry</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-2 border-l-2 border-cyan-500 mb-2">Live KDE Model</p>
+          <p className="text-[9px] text-slate-500 tracking-wide mt-2">
+            Real-time scatter projection of your biomechanics.
+          </p>
         </div>
-        <div className="hidden md:block px-3 py-1 border border-slate-700 text-[10px] text-slate-400 font-bold tracking-widest uppercase rounded">
-          Engine_V4.2.0_Stable
-        </div>
+        <button onClick={fetchMetrics} className="text-[10px] bg-slate-800/50 hover:bg-slate-700 text-slate-400 py-1.5 px-3 rounded text-center transition-colors tracking-widest uppercase font-bold mt-4 self-start">↻ Refresh</button>
       </div>
 
-      <div className="w-[1000px] grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Metric Cards */}
-        <div className="col-span-1 md:col-span-2 grid grid-cols-2 gap-6">
-          <div className="bg-[#111827] border-l-2 border-cyan-400 p-6 rounded shadow-lg flex flex-col justify-between h-40">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Genuine Auth Rate</p>
-            <div>
-              <span className="text-4xl font-bold text-white">{loading ? '--' : metrics.auth_rate}</span>
-              <span className="text-cyan-400 text-sm ml-1 font-bold">%</span>
-            </div>
-            <p className="text-xs text-cyan-400">BASED ON RECENT LOGS</p>
-          </div>
-
-          <div className="bg-[#111827] border-l-2 border-cyan-400 p-6 rounded shadow-lg flex flex-col justify-between h-40">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Impostor Blocked Rate</p>
-            <div>
-              <span className="text-4xl font-bold text-white">{loading ? '--' : metrics.blocked_rate}</span>
-              <span className="text-cyan-400 text-sm ml-1 font-bold">%</span>
-            </div>
-            <p className="text-xs text-slate-500">DYNAMIC TELEMETRY</p>
-          </div>
-
-          {/* ROC Curve Component */}
-
-          <div className="col-span-2 bg-[#111827] border border-slate-800 p-6 rounded shadow-lg h-96 flex flex-col relative overflow-hidden">
-            <div className="flex justify-between items-center mb-4 z-10">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ROC Curve Performance</p>
-            </div>
-            <div className="flex-1 w-full bg-[#0f172a] border border-slate-800 rounded flex items-center justify-center text-slate-600 text-xs overflow-hidden">
-              {metrics.roc_plot ? (
-                <img src={metrics.roc_plot} alt="ROC Curve" className="w-full h-full object-contain" />
-              ) : (
-                "[ Loading ROC Curve... ]"
-              )}
-            </div>
-          </div>
+      <div className="flex-1 w-full h-full bg-[#0f172a] border border-slate-800 rounded-lg flex items-center justify-center relative overflow-hidden group ml-0 md:ml-4">
+        <div className="absolute top-3 left-3 text-[9px] text-cyan-500 font-mono opacity-80 z-10 transition-opacity bg-slate-900/60 p-1.5 rounded">
+          PCA_0_X<br/>
+          PCA_1_Y<br/>
         </div>
-
-        {/* KDE Behavioral Cloud Component */}
-        <div className="col-span-1 md:col-span-2 bg-[#111827] w-[820px] border border-slate-800 p-6 rounded shadow-lg h-full min-h-[600px] flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">KDE Behavioral Cloud</p>
-            <button onClick={fetchMetrics} className="text-slate-600 hover:text-cyan-400 transition-colors">↻ REFRESH</button>
+        
+        {kdePlot ? (
+          <img src={kdePlot} alt="KDE Cloud" className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity" />
+        ) : (
+          <div className="flex flex-col items-center justify-center space-y-2">
+            <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-slate-600 text-[10px] uppercase font-bold tracking-widest animate-pulse">Scanning Bio-Signature...</div>
           </div>
-          <div className="flex-1 w-full bg-[#0f172a] border border-slate-800 rounded flex items-center justify-center text-slate-600 text-xs relative overflow-hidden">
-             <div className="absolute top-4 left-4 text-[8px] text-cyan-500 font-mono opacity-80 z-10">
-               AXIS_X: PRINCIPAL_COMP_1<br/>
-               AXIS_Y: PRINCIPAL_COMP_2<br/>
-               KDE_BANDWIDTH: 0.25
-             </div>
-             {metrics.kde_plot ? (
-                <img src={metrics.kde_plot} alt="KDE Cloud" className=" w-full h-full object-contain" />
-              ) : (
-                "[ Loading KDE Cloud Scatter Plot... ]"
-              )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
