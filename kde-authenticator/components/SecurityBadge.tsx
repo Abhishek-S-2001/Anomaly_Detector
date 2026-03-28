@@ -27,9 +27,9 @@ export default function SecurityBadge({ status, trustScore }: SecurityBadgeProps
   }
 
   return (
-    <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border shadow-sm transition-all duration-300 ${badgeColor}`}>
+    <div className={`flex items-center space-x-3 px-3 py-1.5 rounded-full border shadow-sm transition-all duration-300 shrink-0 ${badgeColor}`}>
       <span className="text-sm">{icon}</span>
-      <span className="text-sm font-semibold tracking-wide">{label}</span>
+      <span className="text-sm font-semibold tracking-wide whitespace-nowrap">{label}</span>
       {trustScore !== undefined && (
         <span className="ml-2 text-xs opacity-80 border-l pl-2 border-current">
           Score: {(trustScore * 100).toFixed(0)}%

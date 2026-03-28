@@ -20,6 +20,7 @@ export default function ContinuousAuthNoteTaker() {
   const [authStatus, setAuthStatus]       = useState<AuthStatus>('idle');
   const [trustScore, setTrustScore]       = useState<number | undefined>(undefined);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isImposterMode, setIsImposterMode] = useState(false);
 
   const [notes, setNotes]               = useState<Note[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
@@ -92,7 +93,7 @@ export default function ContinuousAuthNoteTaker() {
     try {
       const res = await fetch(`${API_URL}/api/authenticate`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: selectedUser.username, passphrase: 'continuous_auth', sample: chunk, is_actual_genuine: true }),
+        body: JSON.stringify({ username: selectedUser.username, passphrase: 'continuous_auth', sample: chunk, is_actual_genuine: !isImposterMode }),
       });
       if (res.ok) {
         const r = await res.json();
@@ -102,7 +103,7 @@ export default function ContinuousAuthNoteTaker() {
         setRefreshTrigger(p => p + 1);
       } else { setAuthStatus('failed'); }
     } catch { setAuthStatus('failed'); }
-  }, [selectedUser, isNewUser]);
+  }, [selectedUser, isNewUser, isImposterMode]);
 
   const liveKeystrokes = useKeystrokes(45, onLiveChunkReady);
   const activeNote = notes.find(n => n.id === activeNoteId) ?? null;
@@ -117,6 +118,8 @@ export default function ContinuousAuthNoteTaker() {
           isNewUser={isNewUser}
           authStatus={authStatus}
           trustScore={trustScore}
+          isImposterMode={isImposterMode}
+          onToggleImposterMode={() => setIsImposterMode(!isImposterMode)}
           onRecalibrate={() => { setIsNewUser(true); setRegistrationSamples([]); setAuthStatus('idle'); setTrustScore(undefined); liveKeystrokes.resetKeystrokes(); }}
           onSignOut={() => { setSelectedUser(null); setAuthStatus('idle'); setTrustScore(undefined); }}
         />
@@ -139,7 +142,7 @@ export default function ContinuousAuthNoteTaker() {
 
           <DashboardLayout
             visible={!!(selectedUser && !isNewUser)}
-            username={selectedUser?.username ?? ''}
+            username={selectedUser && !isNewUser ? selectedUser.username : ''}
             refreshTrigger={refreshTrigger}
             liveKeystrokes={liveKeystrokes}
             notes={notes}

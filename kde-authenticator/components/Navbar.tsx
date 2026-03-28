@@ -8,6 +8,8 @@ interface NavbarProps {
   isNewUser: boolean;
   authStatus: AuthStatus;
   trustScore: number | undefined;
+  isImposterMode: boolean;
+  onToggleImposterMode: () => void;
   onRecalibrate: () => void;
   onSignOut: () => void;
 }
@@ -17,6 +19,8 @@ export default function Navbar({
   isNewUser,
   authStatus,
   trustScore,
+  isImposterMode,
+  onToggleImposterMode,
   onRecalibrate,
   onSignOut,
 }: NavbarProps) {
@@ -33,6 +37,17 @@ export default function Navbar({
             <span className="text-sm font-medium text-slate-300">{selectedUser.username}</span>
           </div>
           <SecurityBadge status={authStatus} trustScore={trustScore} />
+          <button
+            onClick={onToggleImposterMode}
+            className={`text-[10px] font-bold tracking-widest uppercase border px-3 py-1.5 rounded transition-all ${
+              isImposterMode
+                ? 'bg-rose-900/40 text-rose-500 border-rose-800 hover:bg-rose-900/60'
+                : 'bg-transparent text-slate-500 border-slate-700 hover:text-slate-300 hover:border-slate-500'
+            }`}
+            title="Toggle simulating an impostor user"
+          >
+            {isImposterMode ? '⚠ Impostor Mode' : 'Simulate Impostor'}
+          </button>
           <button
             onClick={onRecalibrate}
             className="text-[10px] font-bold tracking-widest uppercase bg-transparent hover:bg-cyan-900/40 text-cyan-500 hover:text-cyan-300 border border-cyan-800 hover:border-cyan-600 px-3 py-1.5 rounded transition-all"

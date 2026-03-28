@@ -49,7 +49,7 @@ export default function UserSelector({ onUserSelected }: UserSelectorProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Backend expects standard Pydantic schema for creating a user
-        body: JSON.stringify({ username: newUsername.trim() })
+        body: JSON.stringify({ username: newUsername.trim(), passphrase: "continuous_baseline" })
       });
 
       if (response.ok) {
@@ -62,6 +62,25 @@ export default function UserSelector({ onUserSelected }: UserSelectorProps) {
       }
     } catch (error) {
       console.error("Failed to create user:", error);
+    }
+  };
+
+  const handleDeleteUser = async (e: React.MouseEvent, userId: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this profile? All biometric baselines and secure notes will be permanently destroyed.")) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/users/${userId}`, {
+        method: "DELETE"
+      });
+
+      if (response.ok) {
+        setUsers(users.filter(u => u.id !== userId));
+      } else {
+        console.error("Failed to delete user from server");
+      }
+    } catch (error) {
+      console.error("Failed to delete user:", error);
     }
   };
 
@@ -80,13 +99,21 @@ export default function UserSelector({ onUserSelected }: UserSelectorProps) {
           ) : (
             <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
               {users.map(user => (
-                <button
-                  key={user.id}
-                  onClick={() => handleSelectUser(user)}
-                  className="w-full text-left px-4 py-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/80 border border-slate-700 hover:border-cyan-500/50 transition-all font-medium text-slate-300 hover:text-cyan-400"
-                >
-                  {user.username}
-                </button>
+                <div key={user.id} className="flex gap-2">
+                  <button
+                    onClick={() => handleSelectUser(user)}
+                    className="flex-1 text-left px-4 py-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/80 border border-slate-700 hover:border-cyan-500/50 transition-all font-medium text-slate-300 hover:text-cyan-400"
+                  >
+                    {user.username}
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteUser(e, user.id)}
+                    className="px-4 shrink-0 rounded-lg bg-slate-800/50 hover:bg-rose-900/50 text-slate-500 hover:text-rose-400 border border-slate-700 hover:border-rose-900/50 transition-all"
+                    title="Delete Profile"
+                  >
+                    ×
+                  </button>
+                </div>
               ))}
             </div>
           )}
