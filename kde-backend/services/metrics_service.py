@@ -22,6 +22,15 @@ def get_metrics_logic(payload: MetricsPayload):
     user_id = user_res.data[0]['id']
 
     meta_res = supabase.table("model_metadata").select("*").eq("user_id", user_id).execute()
+    if not meta_res.data:
+        return {
+            "status": "uncalibrated",
+            "message": "User has not completed baseline calibration.",
+            "auth_rate": 0,
+            "blocked_rate": 0,
+            "kde_plot": None,
+            "roc_plot": None
+        }
     meta = meta_res.data[0]
     threshold = meta["security_threshold"]
 
@@ -46,21 +55,32 @@ def get_metrics_logic(payload: MetricsPayload):
     
     genuine_scores = []
     impostor_scores = []
+    pca_points_grey = []
     pca_points_genuine = []
     pca_points_impostor = []
 
-    for log in logs_res.data:
+    sorted_logs = sorted(logs_res.data, key=lambda x: x["created_at"])
+    total_logs = len(sorted_logs)
+
+    for i, log in enumerate(sorted_logs):
         feat_dict = get_6d_features(log["features"])
         df_log = pd.DataFrame([feat_dict])
-        pca_val = pca.transform(scaler.transform(df_log))
-        score = log["log_density_score"] or kde.score_samples(pca_val)[0]
+        pca_val = pca.transform(scaler.transform(df_log))[0]
+        score = log["log_density_score"] or kde.score_samples(pca_val.reshape(1, -1))[0]
         
         if log["attempt_type"] == "genuine_login":
             genuine_scores.append(score)
-            pca_points_genuine.append(pca_val[0])
         elif log["attempt_type"] == "impostor_blocked":
             impostor_scores.append(score)
-            pca_points_impostor.append(pca_val[0])
+
+        is_recent = i >= (total_logs - 10)
+        if is_recent:
+            if log["attempt_type"] == "genuine_login":
+                pca_points_genuine.append(pca_val)
+            elif log["attempt_type"] == "impostor_blocked":
+                pca_points_impostor.append(pca_val)
+        else:
+            pca_points_grey.append(pca_val)
 
     auth_rate = (sum(1 for s in genuine_scores if s >= threshold) / len(genuine_scores) * 100) if genuine_scores else 100.0
     blocked_rate = (sum(1 for s in impostor_scores if s < threshold) / len(impostor_scores) * 100) if impostor_scores else 100.0
@@ -80,6 +100,9 @@ def get_metrics_logic(payload: MetricsPayload):
     except:
         pass
 
+    if pca_points_grey:
+        all_x.extend([p[0] for p in pca_points_grey])
+        all_y.extend([p[1] for p in pca_points_grey])
     if pca_points_genuine:
         all_x.extend([p[0] for p in pca_points_genuine])
         all_y.extend([p[1] for p in pca_points_genuine])
@@ -102,16 +125,20 @@ def get_metrics_logic(payload: MetricsPayload):
         ax1.contour(xx, yy, Z, levels=[threshold], colors='cyan', linewidths=2, linestyles='dashed')
     except ValueError:
         pass
-
     if 'base_cloud_points' in locals():
         ax1.scatter(base_cloud_points[:, 0], base_cloud_points[:, 1], c='#3b82f6', alpha=0.4, s=15, label='Learned Density Base')
+        
+    if pca_points_grey:
+        grey_arr = np.array(pca_points_grey)
+        ax1.scatter(grey_arr[:, 0], grey_arr[:, 1], c='#475569', label='History Data', edgecolors='none', s=20, alpha=0.5, zorder=3)
 
     if pca_points_genuine:
         gen_arr = np.array(pca_points_genuine)
-        ax1.scatter(gen_arr[:, 0], gen_arr[:, 1], c='#4ade80', label='Live Genuine', edgecolors='black', s=50, zorder=5)
+        ax1.scatter(gen_arr[:, 0], gen_arr[:, 1], c='#4ade80', label='Recent Genuine', edgecolors='black', s=50, zorder=5)
+
     if pca_points_impostor:
         imp_arr = np.array(pca_points_impostor)
-        ax1.scatter(imp_arr[:, 0], imp_arr[:, 1], c='#ef4444', marker='X', label='Live Impostor', s=60, zorder=5)
+        ax1.scatter(imp_arr[:, 0], imp_arr[:, 1], c='#ef4444', label='Recent Impostor', edgecolors='black', s=50, zorder=5)
 
     ax1.set_xlim([x_min, x_max])
     ax1.set_ylim([y_min, y_max])
