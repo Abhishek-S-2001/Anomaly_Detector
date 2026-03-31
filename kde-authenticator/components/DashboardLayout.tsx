@@ -3,19 +3,14 @@
 import PerformanceDashboard from '@/components/PerformanceDashboard';
 import NoteEditor from '@/components/NoteEditor';
 import NoteSidebar, { Note } from '@/components/NoteSidebar';
+import RiskGauge, { RiskData } from '@/components/RiskGauge';
+import CalcPanel from '@/components/CalcPanel';
 
 interface DashboardLayoutProps {
   visible: boolean;
   username: string;
   refreshTrigger: number;
-  liveKeystrokes: {
-    inputValue: string;
-    setInputValue: React.Dispatch<React.SetStateAction<string>>;
-    handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-    handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-    handleKeyUp: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-    resetKeystrokes: () => void;
-  };
+  liveKeystrokes: any;
   notes: Note[];
   activeNoteId: string | null;
   activeNote: Note | null;
@@ -24,6 +19,10 @@ interface DashboardLayoutProps {
   onCreateNewNote: () => void;
   onSaveNote: (title: string, content: string) => Promise<void>;
   onDeleteNote: () => Promise<void>;
+  riskData: RiskData | null;
+  bDetail: Record<string, number> | null;
+  cSub: Record<string, number> | null;
+  eSub: Record<string, number> | null;
 }
 
 export default function DashboardLayout({
@@ -39,16 +38,41 @@ export default function DashboardLayout({
   onCreateNewNote,
   onSaveNote,
   onDeleteNote,
+  riskData,
+  bDetail,
+  cSub,
+  eSub,
 }: DashboardLayoutProps) {
   return (
-    <div className={`flex w-full h-full min-h-[600px] transition-opacity duration-500 gap-6 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+    // Fills the <main> container — no own h-screen, parent controls height
+    <div className={`flex w-full h-full gap-3 p-3 overflow-hidden transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
 
-      {/* Left Column: KDE Cloud (top) + Note Editor (bottom) */}
-      <div className="flex-1 flex flex-col min-w-0 space-y-6">
-        <div className="h-[420px] shrink-0 w-full">
-          <PerformanceDashboard username={username} refreshTrigger={refreshTrigger} />
+      {/* ── COL A: Note Sidebar (fixed 240px) ── */}
+      <div className="w-[240px] shrink-0 flex flex-col min-h-0">
+        <NoteSidebar
+          notes={notes}
+          activeNoteId={activeNoteId}
+          onSelectNote={onSelectNote}
+          onCreateNewNote={onCreateNewNote}
+          isLoading={isLoadingNotes}
+        />
+      </div>
+
+      {/* ── COL B: KDE Cloud + Risk Gauge + Note Editor (flex grow) ── */}
+      <div className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
+
+
+        <div className="flex flex-row gap-3 h-[380px] shrink-0">
+          <div className="flex-[1.5] min-w-0 h-full rounded-xl border border-slate-800/60 bg-[#0b0f19] overflow-hidden">
+            <RiskGauge risk={riskData} />
+          </div>
+          
+          <div className="flex-[2] min-w-0 h-full rounded-xl border border-slate-800/60 bg-[#0b0f19] overflow-hidden">
+            <PerformanceDashboard userID={username} refreshTrigger={refreshTrigger} />
+          </div>
         </div>
-        <div className="h-[200px] shrink-0 bg-[#0b0f19] rounded-2xl overflow-hidden border border-[#1a2333] shadow-2xl">
+
+        <div className="flex-1 min-h-0 w-full rounded-xl border border-[#1a2333] bg-[#0b0f19] overflow-hidden flex flex-col">
           <NoteEditor
             note={activeNote}
             onSave={onSaveNote}
@@ -63,14 +87,14 @@ export default function DashboardLayout({
         </div>
       </div>
 
-      {/* Right Column: Note Sidebar */}
-      <div className="w-80 shrink-0 h-full">
-        <NoteSidebar
-          notes={notes}
-          activeNoteId={activeNoteId}
-          onSelectNote={onSelectNote}
-          onCreateNewNote={onCreateNewNote}
-          isLoading={isLoadingNotes}
+      {/* ── COL C: Live Calculations (fixed 260px) ── */}
+      <div className="w-[260px] shrink-0 flex flex-col min-h-0">
+        <CalcPanel
+          risk={riskData}
+          bDetail={bDetail as any}
+          cSub={cSub}
+          eSub={eSub}
+          rawLogDensity={bDetail?.log_density ?? null}
         />
       </div>
     </div>

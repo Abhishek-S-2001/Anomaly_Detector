@@ -21,6 +21,7 @@ class AuthPayload(BaseModel):
 
 class MetricsPayload(BaseModel):
     username: str
+    theme: str = "dark"   # "light" | "dark"
 
 class UserCreate(BaseModel):
     username: str
@@ -30,3 +31,27 @@ class UserResponse(BaseModel):
     id: UUID
     username: str
     created_at: datetime
+
+# ── Risk Engine Schemas ───────────────────────────────────────────────────────
+
+class ContextPayload(BaseModel):
+    """C(t) inputs — collected server-side at auth time."""
+    username: str
+    ip_address: str            # forwarded from frontend or request.client.host
+    current_hour: int          # 0-23, local hour at the client
+    client_timestamp: str      # ISO string from browser Date()
+
+class SessionPayload(BaseModel):
+    """E(t) inputs — device fingerprint collected by the browser."""
+    username: str
+    fingerprint_hash: str      # FNV-1a hash of UA+screen+tz+lang
+    user_agent: str
+    network_type: Optional[str] = None   # navigator.connection.type
+    is_vpn: Optional[bool] = False
+
+class RiskResponse(BaseModel):
+    b_score: float
+    c_score: float
+    e_score: float
+    r_score: float
+    decision: str              # "allow" | "mfa" | "block"

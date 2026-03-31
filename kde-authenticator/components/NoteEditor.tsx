@@ -27,31 +27,32 @@ export default function NoteEditor({
   resetKeystrokes,
 }: NoteEditorProps) {
   const [title, setTitle] = useState('');
+  const [noteContent, setNoteContent] = useState('');  // real textarea content
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync incoming note text with our editor tools when the current note changes
+  // Sync incoming note into local state when it changes
   useEffect(() => {
-    if (note) {
-      setTitle(note.title);
-      setInputValue(note.content);
-      resetKeystrokes(); // Clear previously buffered keystrokes on note switch
-    } else {
-      setTitle('');
-      setInputValue('');
-      resetKeystrokes();
-    }
-  }, [note?.id]); // Only re-run if ID changes to prevent cursor disruption
+    const content = note?.content ?? '';
+    setTitle(note?.title ?? '');
+    setNoteContent(content);
+    setInputValue(content);   // keep hook in sync for biometrics
+    resetKeystrokes();
+  }, [note?.id]);
 
   const handleSaveWrapper = async () => {
     setIsSaving(true);
     try {
-      await onSave(title, inputValue);
+      await onSave(title, noteContent);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Removed explicit placeholder render to allow writing new notes when note is null
+  // Overlay: keeps local content in sync + forwards to biometric hook
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNoteContent(e.target.value);
+    handleChange(e);  // biometric hook
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-[#0b0f19] h-full rounded-r-2xl relative border-t border-r border-b border-[#1a2333]">
@@ -92,8 +93,8 @@ export default function NoteEditor({
 
       {/* Editor Main Canvas */}
       <textarea
-        value={inputValue}
-        onChange={handleChange}
+        value={noteContent}
+        onChange={handleTextareaChange}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         placeholder="Begin writing... The system analyzes your unique typing signature silently in the background."
