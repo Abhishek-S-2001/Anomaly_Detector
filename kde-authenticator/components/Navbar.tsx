@@ -11,6 +11,8 @@ interface NavbarProps {
   trustScore: number | undefined;
   isImposterMode: boolean;
   onToggleImposterMode: () => void;
+  demoAnomalyMode: boolean;
+  onToggleDemoAnomaly: () => void;
   onRecalibrate: () => void;
   onSignOut: () => void;
 }
@@ -22,6 +24,8 @@ export default function Navbar({
   trustScore,
   isImposterMode,
   onToggleImposterMode,
+  demoAnomalyMode,
+  onToggleDemoAnomaly,
   onRecalibrate,
   onSignOut,
 }: NavbarProps) {
@@ -86,6 +90,17 @@ export default function Navbar({
               title="Toggle simulating an impostor user"
             >
               {isImposterMode ? '⚠ Impostor Mode' : 'Simulate Impostor'}
+            </button>
+            <button
+              onClick={onToggleDemoAnomaly}
+              className={`text-[10px] font-bold tracking-widest uppercase border px-3 py-1.5 rounded transition-all ${
+                demoAnomalyMode
+                  ? 'bg-amber-900/40 text-amber-400 border-amber-700 hover:bg-amber-900/60 animate-pulse'
+                  : 'bg-transparent text-slate-500 border-slate-700 hover:text-amber-400 hover:border-amber-700'
+              }`}
+              title="Spoof context & environment signals — simulates login from unknown device, VPN and unusual hour"
+            >
+              {demoAnomalyMode ? '🔴 Spoof Active' : '🎭 Spoof Context'}
             </button>
             <button
               onClick={onRecalibrate}

@@ -23,10 +23,12 @@ export default function ContinuousAuthNoteTaker() {
   const [trustScore, setTrustScore]       = useState<number | undefined>(undefined);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isImposterMode, setIsImposterMode] = useState(false);
+  const [demoAnomalyMode, setDemoAnomalyMode] = useState(false);
 
   // ── Risk state ─────────────────────────────────────────────────────────────
   const [riskData, setRiskData] = useState<RiskData | null>(null);
   const [bDetail, setBDetail]   = useState<Record<string, number> | null>(null);
+  const [bHistory, setBHistory] = useState<number[]>([]);
   const [cScore, setCScore]     = useState(0);
   const [cSub, setCSubState]    = useState<Record<string, number> | null>(null);
   const [eScore, setEScore]     = useState(0);
@@ -63,6 +65,74 @@ export default function ContinuousAuthNoteTaker() {
       })
       .catch(() => {});
   }, [deviceFp, selectedUser, isNewUser]);
+
+  // ── Demo Anomaly: spoof C(t) + E(t) when toggle is ON, reset when OFF ────────
+  const handleToggleDemoAnomaly = useCallback(() => {
+    if (!selectedUser) return;
+    const next = !demoAnomalyMode;
+    setDemoAnomalyMode(next);
+
+    if (next) {
+      // Spoof E(t): unknown device + VPN
+      fetch(`${API_URL}/api/risk/session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: selectedUser.username,
+          fingerprint_hash: 'demo_unknown_device_xyz987',
+          user_agent: 'Mozilla/5.0 (Spoofed Bot; demo)',
+          network_type: 'cellular',
+          is_vpn: true,
+        }),
+      }).then(r => r.json()).then(d => {
+        if (d.e_score !== undefined) { setEScore(d.e_score); setESubState(d.sub ?? null); }
+      }).catch(() => {});
+
+      // Spoof C(t): unusual hour (3am) + velocity spike
+      fetch(`${API_URL}/api/risk/context`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: selectedUser.username,
+          ip_address: '185.220.101.45',   // known Tor exit IP
+          current_hour: 3,
+          client_timestamp: new Date().toISOString(),
+        }),
+      }).then(r => r.json()).then(d => {
+        if (d.c_score !== undefined) { setCScore(d.c_score); setCSubState(d.sub ?? null); }
+      }).catch(() => {});
+    } else {
+      // Reset E(t) to real values
+      if (deviceFp) {
+        fetch(`${API_URL}/api/risk/session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: selectedUser.username,
+            fingerprint_hash: deviceFp.fingerprint_hash,
+            user_agent: deviceFp.user_agent,
+            network_type: deviceFp.network_type,
+            is_vpn: deviceFp.is_vpn,
+          }),
+        }).then(r => r.json()).then(d => {
+          if (d.e_score !== undefined) { setEScore(d.e_score); setESubState(d.sub ?? null); }
+        }).catch(() => {});
+      }
+      // Reset C(t) to real values
+      fetch(`${API_URL}/api/risk/context`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: selectedUser.username,
+          ip_address: '',
+          current_hour: new Date().getHours(),
+          client_timestamp: new Date().toISOString(),
+        }),
+      }).then(r => r.json()).then(d => {
+        if (d.c_score !== undefined) { setCScore(d.c_score); setCSubState(d.sub ?? null); }
+      }).catch(() => {});
+    }
+  }, [demoAnomalyMode, selectedUser, deviceFp]);
 
   // ── Send C(t) context payload once per session ──────────────────────────────
   useEffect(() => {
@@ -177,12 +247,30 @@ export default function ContinuousAuthNoteTaker() {
             decision,
           });
           if (r.b_detail) setBDetail(r.b_detail);
+          // Track B(t) history for sparkline (keep last 20)
+          setBHistory(prev => [...prev.slice(-19), r.b_score]);
+        }
+
+        // ── Re-fetch C(t) after every chunk so velocity updates live ───────
+        if (!demoAnomalyMode) {
+          fetch(`${API_URL}/api/risk/context`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: selectedUser.username,
+              ip_address: '',
+              current_hour: new Date().getHours(),
+              client_timestamp: new Date().toISOString(),
+            }),
+          }).then(r2 => r2.json()).then(d => {
+            if (d.c_score !== undefined) { setCScore(d.c_score); setCSubState(d.sub ?? null); }
+          }).catch(() => {});
         }
 
         setRefreshTrigger(p => p + 1);
       } else { setAuthStatus('failed'); }
     } catch { setAuthStatus('failed'); }
-  }, [selectedUser, isNewUser, isImposterMode, cScore, eScore]);
+  }, [selectedUser, isNewUser, isImposterMode, cScore, eScore, demoAnomalyMode]);
 
   const liveKeystrokes = useKeystrokes(45, onLiveChunkReady);
   const activeNote = notes.find(n => n.id === activeNoteId) ?? null;
@@ -190,8 +278,8 @@ export default function ContinuousAuthNoteTaker() {
   const handleSignOut = () => {
     setSelectedUser(null); setAuthStatus('idle');
     setTrustScore(undefined); setRiskData(null);
-    setBDetail(null); setCScore(0); setCSubState(null);
-    setEScore(0); setESubState(null);
+    setBDetail(null); setBHistory([]); setCScore(0); setCSubState(null);
+    setEScore(0); setESubState(null); setDemoAnomalyMode(false);
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -206,6 +294,8 @@ export default function ContinuousAuthNoteTaker() {
           trustScore={trustScore}
           isImposterMode={isImposterMode}
           onToggleImposterMode={() => setIsImposterMode(!isImposterMode)}
+          demoAnomalyMode={demoAnomalyMode}
+          onToggleDemoAnomaly={handleToggleDemoAnomaly}
           onRecalibrate={() => { setIsNewUser(true); setRegistrationSamples([]); setAuthStatus('idle'); setTrustScore(undefined); setRiskData(null); liveKeystrokes.resetKeystrokes(); }}
           onSignOut={handleSignOut}
         />
@@ -241,8 +331,10 @@ export default function ContinuousAuthNoteTaker() {
             onDeleteNote={handleDeleteNote}
             riskData={riskData}
             bDetail={bDetail}
+            bHistory={bHistory}
             cSub={cSub}
             eSub={eSub}
+            demoAnomalyMode={demoAnomalyMode}
           />
         </main>
 

@@ -21,8 +21,10 @@ interface DashboardLayoutProps {
   onDeleteNote: () => Promise<void>;
   riskData: RiskData | null;
   bDetail: Record<string, number> | null;
+  bHistory: number[];
   cSub: Record<string, number> | null;
   eSub: Record<string, number> | null;
+  demoAnomalyMode: boolean;
 }
 
 export default function DashboardLayout({
@@ -40,8 +42,10 @@ export default function DashboardLayout({
   onDeleteNote,
   riskData,
   bDetail,
+  bHistory,
   cSub,
   eSub,
+  demoAnomalyMode,
 }: DashboardLayoutProps) {
   return (
     // Fills the <main> container — no own h-screen, parent controls height
@@ -92,9 +96,11 @@ export default function DashboardLayout({
         <CalcPanel
           risk={riskData}
           bDetail={bDetail as any}
+          bHistory={bHistory}
           cSub={cSub}
           eSub={eSub}
           rawLogDensity={bDetail?.log_density ?? null}
+          demoAnomalyMode={demoAnomalyMode}
         />
       </div>
     </div>

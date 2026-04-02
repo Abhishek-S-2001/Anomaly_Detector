@@ -56,8 +56,8 @@ def get_metrics_logic(payload: MetricsPayload):
     genuine_scores = []
     impostor_scores = []
     pca_points_grey = []
-    pca_points_genuine = []
-    pca_points_impostor = []
+    pca_points_detected_genuine = []   # detected as genuine (score >= threshold)
+    pca_points_detected_impostor = []  # detected as imposter (score < threshold)
 
     sorted_logs = sorted(logs_res.data, key=lambda x: x["created_at"])
     total_logs = len(sorted_logs)
@@ -67,18 +67,21 @@ def get_metrics_logic(payload: MetricsPayload):
         df_log = pd.DataFrame([feat_dict])
         pca_val = pca.transform(scaler.transform(df_log))[0]
         score = log["log_density_score"] or kde.score_samples(pca_val.reshape(1, -1))[0]
-        
+
+        # Buckets for ROC curve are based on actual attempt type
         if log["attempt_type"] == "genuine_login":
             genuine_scores.append(score)
         elif log["attempt_type"] == "impostor_blocked":
             impostor_scores.append(score)
 
+        # Recent dot colour is based on what the model DETECTED
         is_recent = i >= (total_logs - 10)
+        detected_genuine = score >= threshold
         if is_recent:
-            if log["attempt_type"] == "genuine_login":
-                pca_points_genuine.append(pca_val)
-            elif log["attempt_type"] == "impostor_blocked":
-                pca_points_impostor.append(pca_val)
+            if detected_genuine:
+                pca_points_detected_genuine.append(pca_val)
+            else:
+                pca_points_detected_impostor.append(pca_val)
         else:
             pca_points_grey.append(pca_val)
 
@@ -135,12 +138,12 @@ def get_metrics_logic(payload: MetricsPayload):
     if pca_points_grey:
         all_x.extend([p[0] for p in pca_points_grey])
         all_y.extend([p[1] for p in pca_points_grey])
-    if pca_points_genuine:
-        all_x.extend([p[0] for p in pca_points_genuine])
-        all_y.extend([p[1] for p in pca_points_genuine])
-    if pca_points_impostor:
-        all_x.extend([p[0] for p in pca_points_impostor])
-        all_y.extend([p[1] for p in pca_points_impostor])
+    if pca_points_detected_genuine:
+        all_x.extend([p[0] for p in pca_points_detected_genuine])
+        all_y.extend([p[1] for p in pca_points_detected_genuine])
+    if pca_points_detected_impostor:
+        all_x.extend([p[0] for p in pca_points_detected_impostor])
+        all_y.extend([p[1] for p in pca_points_detected_impostor])
 
     x_min, x_max = (min(all_x) - 1.5, max(all_x) + 1.5) if all_x else (-5, 5)
     y_min, y_max = (min(all_y) - 1.5, max(all_y) + 1.5) if all_y else (-5, 5)
@@ -167,15 +170,15 @@ def get_metrics_logic(payload: MetricsPayload):
         ax1.scatter(grey_arr[:, 0], grey_arr[:, 1], c=grey_col,
                     label='History Data', edgecolors='none', s=20, alpha=0.5, zorder=3)
 
-    if pca_points_genuine:
-        gen_arr = np.array(pca_points_genuine)
+    if pca_points_detected_genuine:
+        gen_arr = np.array(pca_points_detected_genuine)
         ax1.scatter(gen_arr[:, 0], gen_arr[:, 1], c=genuine_col,
-                    label='Recent Genuine', edgecolors=genuine_edge, s=50, zorder=5)
+                    label='Detected as Genuine', edgecolors=genuine_edge, s=50, zorder=5)
 
-    if pca_points_impostor:
-        imp_arr = np.array(pca_points_impostor)
+    if pca_points_detected_impostor:
+        imp_arr = np.array(pca_points_detected_impostor)
         ax1.scatter(imp_arr[:, 0], imp_arr[:, 1], c=impostor_col,
-                    label='Recent Impostor', edgecolors=impostor_edge, s=50, zorder=5)
+                    label='Detected as Imposter', edgecolors=impostor_edge, s=50, zorder=5)
 
     ax1.set_xlim([x_min, x_max])
     ax1.set_ylim([y_min, y_max])
