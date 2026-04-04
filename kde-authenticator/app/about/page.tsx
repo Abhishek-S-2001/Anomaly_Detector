@@ -706,11 +706,40 @@ flight_std  = np.std(flight_time)   # variance in transitions (rhythm)
           </div>
         </section>
 
+        {/* ══════════════════════════════════════════════════════════
+            SECTION 9 — ACADEMIC ETHICS & PRIVACY
+            ══════════════════════════════════════════════════════════ */}
+        <section>
+          <SectionHeader icon="🛡️" title="Data Privacy & Academic Ethics" subtitle="Zero-knowledge architecture and participant consent" />
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card>
+              <h3 className="about-title font-bold mb-2">Zero-Knowledge Keystrokes</h3>
+              <p className="about-secondary text-sm leading-relaxed mb-3">
+                The Anomaly Detector is fundamentally designed to never store the content of what you type.
+                The raw DOM events (`keydown`, `keyup`) containing the letter strings (e.g., `'a'`, `'Shift'`) are processed purely in the browser's volatile memory.
+              </p>
+              <p className="about-secondary text-sm leading-relaxed">
+                Once the numerical time differentials (e.g., `120.4ms`) are calculated, the characters are immediately discarded. Only the timing floating-point arrays are sent to the API. It is mathematically impossible to reconstruct passwords or messages from this timing data.
+              </p>
+            </Card>
+            
+            <Card>
+              <h3 className="about-title font-bold mb-2">Minimization & Anonymization</h3>
+              <ul className="list-disc pl-5 space-y-2 text-sm about-secondary">
+                <li><strong className="about-title">No Persistent Tracking:</strong> Device telemetry is collected using a one-way `FNV-1a` hash. Neither your device's exact specifications nor traditional tracking cookies are saved.</li>
+                <li><strong className="about-title">Self-Hosted Isolation:</strong> The application relies on an isolated PostgreSQL instance for metadata retrieval. It does not ingest or analyze data for third-party commercial marketing.</li>
+                <li><strong className="about-title">Instant Erasure:</strong> Participants in the study have unilateral control. Deleting a profile from the dashboard instantaneously drops the Supabase database row and wipes the isolated KDE `.pkl` models from storage.</li>
+              </ul>
+            </Card>
+          </div>
+        </section>
+
         {/* Footer */}
         <div className="border-t about-border pt-10 pb-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <p className="about-title font-bold">Anomaly Detector</p>
             <p className="about-muted text-xs">Dissertation Project — Continuous Behavioral Biometric Authentication</p>
+            <p className="about-muted text-xs mt-1">Researcher: <a href="mailto:abhishek.shekhawat.1920@gmail.com" className="hover:text-cyan-500 transition-colors">Abhishek Shekhawat</a> &middot; <a href="https://www.linkedin.com/in/abhishek-shekhawat/" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-500 transition-colors">LinkedIn</a></p>
           </div>
           <Link href="/" className="text-xs font-bold uppercase tracking-widest text-cyan-600 dark:text-cyan-400 border border-cyan-400/40 px-4 py-2 rounded hover:bg-cyan-50 dark:hover:bg-cyan-900/30 transition-colors">
             ← Back to Dashboard

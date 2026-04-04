@@ -25,7 +25,11 @@ class MetricsPayload(BaseModel):
 
 class UserCreate(BaseModel):
     username: str
+    password: str
     passphrase: Optional[str] = None
+
+class DeleteUserPayload(BaseModel):
+    password: str
 
 class UserResponse(BaseModel):
     id: UUID

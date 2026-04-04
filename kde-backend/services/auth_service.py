@@ -78,13 +78,21 @@ def register_user_logic(payload: RegistrationPayload):
         file_options={"content-type": "application/octet-stream", "x-upsert": "true"}
     )
 
+
     # 7. SAVE TO POSTGRESQL DATABASE
-    user_res = supabase.table("users").upsert({
-        "username": payload.username,
-        "passphrase": payload.passphrase
-    }, on_conflict="username").execute()
-    
-    user_id = user_res.data[0]['id']
+    # First try to find existing user so we can preserve their stored passphrase (password).
+    existing = supabase.table("users").select("id, passphrase").eq("username", payload.username).execute()
+    if existing.data:
+        user_id = existing.data[0]['id']
+        # User exists — do NOT overwrite their password, just update username (no-op effectively)
+        user_res = supabase.table("users").update({}).eq("id", user_id).execute()
+    else:
+        user_res = supabase.table("users").insert({
+            "username": payload.username,
+            "passphrase": payload.passphrase
+        }).execute()
+        user_id = user_res.data[0]['id']
+
 
     supabase.table("keystroke_logs").delete().eq("user_id", user_id).execute()
 

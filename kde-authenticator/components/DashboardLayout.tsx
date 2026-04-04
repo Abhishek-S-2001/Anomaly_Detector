@@ -66,14 +66,8 @@ export default function DashboardLayout({
       <div className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
 
 
-        <div className="flex flex-row gap-3 h-[380px] shrink-0">
-          <div className="flex-[1.5] min-w-0 h-full rounded-xl border border-slate-800/60 bg-[#0b0f19] overflow-hidden">
-            <RiskGauge risk={riskData} />
-          </div>
-          
-          <div className="flex-[2] min-w-0 h-full rounded-xl border border-slate-800/60 bg-[#0b0f19] overflow-hidden">
-            <PerformanceDashboard userID={username} refreshTrigger={refreshTrigger} />
-          </div>
+        <div className="w-full h-[480px] shrink-0 rounded-xl border border-slate-800/60 bg-[#0b0f19] overflow-hidden shadow-xl shadow-cyan-900/10">
+          <PerformanceDashboard userID={username} refreshTrigger={refreshTrigger} risk={riskData} />
         </div>
 
         <div className="flex-1 min-h-0 w-full rounded-xl border border-[#1a2333] bg-[#0b0f19] overflow-hidden flex flex-col">

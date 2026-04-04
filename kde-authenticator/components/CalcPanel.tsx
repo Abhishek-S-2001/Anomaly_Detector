@@ -111,14 +111,33 @@ function Sparkline({ data, threshold }: { data: number[]; threshold?: number }) 
 export default function CalcPanel({ risk, bDetail, bHistory, cSub, eSub, demoAnomalyMode }: CalcPanelProps) {
   if (!risk || !bDetail) {
     return (
-      <div className="w-full h-full border border-slate-800 bg-[#0b0f19] rounded-xl p-3 flex flex-col gap-2">
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-2 border-l-2 border-yellow-500">
+      <div className="w-full h-full border border-slate-800 bg-[#0b0f19] rounded-xl p-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar">
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-2 border-l-2 border-yellow-500 shrink-0 mb-1">
           Live Calculations
         </p>
-        <div className="flex-1 flex items-center justify-center">
-          <span className="text-[9px] text-slate-600 uppercase tracking-widest animate-pulse">
-            Awaiting data...
-          </span>
+        {/* Ghost sections — same structure, dimmed */}
+        {[
+          { title: 'Behavioural B(t)',   color: 'text-blue-800',   rows: ['KDE Density', 'Threshold', 'Distance', 'Normalised', 'Shift', 'B(t) Score'] },
+          { title: 'Contextual C(t)',    color: 'text-teal-800',   rows: ['Hour Dev', 'Geo Dev', 'IP Flag', 'Velocity', 'C(t) Score'] },
+          { title: 'Environmental E(t)', color: 'text-purple-800', rows: ['Device Hash', 'UA Match', 'Network', 'VPN', 'E(t) Score'] },
+          { title: 'R(t) Aggregation',  color: 'text-orange-800', rows: ['0.5 × B(t)', '0.3 × C(t)', '0.2 × E(t)', 'R(t) Global'] },
+        ].map(s => (
+          <div key={s.title} className="rounded-lg border border-slate-800/50 overflow-hidden bg-slate-900/10 opacity-40">
+            <div className={`px-2 py-1 text-[8px] font-bold uppercase tracking-widest ${s.color} bg-slate-900/40 border-b border-slate-800`}>
+              {s.title}
+            </div>
+            <div className="px-2 py-1 space-y-0.5">
+              {s.rows.map(r => (
+                <div key={r} className="flex items-center justify-between gap-2 py-0.5">
+                  <span className="text-[9px] text-slate-700 uppercase tracking-widest font-semibold truncate">{r}</span>
+                  <span className="font-mono text-[10px] text-slate-700">—</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div className="flex-1 flex items-end justify-center pb-2">
+          <span className="text-[8px] text-slate-700 uppercase tracking-widest">Type to begin authentication</span>
         </div>
       </div>
     );

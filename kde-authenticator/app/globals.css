@@ -156,6 +156,7 @@ body {
 /* ── Background overrides ─────────────────────────────────────────────────── */
 [data-theme="light"] [class*="bg-[#0b0f19]"]  { background-color: #ffffff !important; }
 [data-theme="light"] [class*="bg-[#0d121f]"]  { background-color: #f8fafc !important; }
+[data-theme="light"] [class*="bg-[#0a0d14]"]  { background-color: #f4f7fb !important; }
 [data-theme="light"] [class*="bg-[#0f172a]"]  { background-color: #edf2f7 !important; }
 [data-theme="light"] [class*="bg-[#111827]"]  { background-color: #f1f5f9 !important; }
 [data-theme="light"] [class*="bg-[#05080f]"]  { background-color: #eef2f7 !important; }
@@ -170,20 +171,24 @@ body {
 [data-theme="light"] [class*="bg-slate-900/60"]  { background-color: rgba(248,250,252,0.85) !important; }
 [data-theme="light"] [class*="bg-[#0b0f19]/80"] { background-color: rgba(248,250,252,0.88) !important; }
 
-/* ── Text overrides ───────────────────────────────────────────────────────── */
+/* ── Text & Fill overrides ────────────────────────────────────────────────── */
 [data-theme="light"] .text-slate-200 { color: #0f172a !important; }
 [data-theme="light"] .text-slate-300 { color: #1e293b !important; }
 [data-theme="light"] .text-slate-400 { color: #475569 !important; }
 [data-theme="light"] .text-slate-500 { color: #64748b !important; }
 [data-theme="light"] .text-slate-600 { color: #64748b !important; }
 [data-theme="light"] .text-white     { color: #0f172a !important; }
+[data-theme="light"] .fill-slate-500 { fill: #64748b !important; }
 
-/* ── Border overrides ─────────────────────────────────────────────────────── */
+/* ── Border & Stroke overrides ────────────────────────────────────────────── */
 [data-theme="light"] .border-slate-800      { border-color: #cbd5e1 !important; }
 [data-theme="light"] .border-slate-700      { border-color: #94a3b8 !important; }
+[data-theme="light"] [class*="border-slate-800/40"] { border-color: rgba(148,163,184,0.3) !important; }
 [data-theme="light"] [class*="border-slate-800/60"] { border-color: rgba(148,163,184,0.5) !important; }
+[data-theme="light"] [class*="border-slate-700/60"] { border-color: rgba(148,163,184,0.7) !important; }
 [data-theme="light"] [class*="border-[#1a2333]"]    { border-color: #cbd5e1 !important; }
 [data-theme="light"] [class*="border-[#1e293b]"]    { border-color: #e2e8f0 !important; }
+[data-theme="light"] .stroke-slate-800      { stroke: #cbd5e1 !important; }
 
 /* ── Input / textarea ─────────────────────────────────────────────────────── */
 [data-theme="light"] input,
@@ -211,8 +216,13 @@ body {
 
 /* ── CalcPanel section backgrounds ───────────────────────────────────────── */
 [data-theme="light"] [class*="bg-slate-900/50"] { background-color: rgba(241,245,249,0.9) !important; }
-[data-theme="light"] [class*="bg-slate-900/20"] { background-color: rgba(241,245,249,0.5) !important; }
 [data-theme="light"] [class*="bg-slate-900/40"] { background-color: rgba(241,245,249,0.7) !important; }
+[data-theme="light"] [class*="bg-slate-900/20"] { background-color: rgba(241,245,249,0.5) !important; }
+[data-theme="light"] [class*="bg-slate-900/10"] { background-color: rgba(241,245,249,0.3) !important; }
+
+/* ── Glow / Effect overrides ─────────────────────────────────────────────── */
+[data-theme="light"] [class*="bg-emerald-500/10"] { background-color: rgba(16,185,129,0.2) !important; }
+[data-theme="light"] [class*="bg-amber-500/10"] { background-color: rgba(245,158,11,0.2) !important; }
 
 /* ── Specific text colors used in CalcPanel/RiskGauge ────────────────────── */
 [data-theme="light"] .text-blue-400   { color: #1d4ed8 !important; }

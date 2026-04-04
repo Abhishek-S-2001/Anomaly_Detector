@@ -81,7 +81,7 @@ export default function RiskGauge({ risk }: Props) {
   }[risk?.decision ?? 'allow'];
 
   return (
-    <div className="relative w-full h-full border border-slate-800 bg-[#0b0f19] rounded-xl p-4 flex flex-col gap-3">
+    <div className="relative w-full h-full flex flex-col gap-3">
       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-2 border-l-2 border-purple-500">
         Risk Engine — R(t)
       </p>
@@ -94,12 +94,12 @@ export default function RiskGauge({ risk }: Props) {
         </div>
 
         {/* Arc gauge */}
-        <div className="relative shrink-0 w-[240px] h-[180px]">
+        <div className="relative shrink-0 w-[180px] h-[135px]">
           <svg viewBox="0 0 120 120" className="w-full h-full overflow-visible">
             {/* Track rings */}
             {[36, 28, 21].map((r_) => (
               <circle key={r_} cx="60" cy="60" r={r_} fill="none"
-                stroke="#1e293b" strokeWidth={6}
+                className="stroke-slate-800" strokeWidth={6}
                 strokeDasharray={`${2 * Math.PI * r_ * 0.75} ${2 * Math.PI * r_ * 0.25}`}
                 strokeDashoffset={2 * Math.PI * r_ * (1 - 0.375)}
                 strokeLinecap="round"
@@ -118,32 +118,32 @@ export default function RiskGauge({ risk }: Props) {
               fill={riskColor(r)}>
               {(r * 100).toFixed(0)}
             </text>
-            <text x="60" y="69" textAnchor="middle" fontSize="6.5" fill="#64748b" fontWeight="500">
+            <text x="60" y="69" textAnchor="middle" fontSize="6.5" className="fill-slate-500" fontWeight="500">
               RISK %
             </text>
           </svg>
         </div>
 
         {/* Legend / Definition */}
-        <div className="flex flex-row gap-4 mt-2">
+        <div className="flex flex-wrap justify-center gap-x-3 gap-y-2 mt-auto pt-2">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: riskColor(r) }}></div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">R(t) <span className="text-slate-600 font-normal ml-0.5">Composite</span></span>
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">R(t) <span className="text-slate-600 font-normal ml-0.5">Composite</span></span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: riskColor(b) }}></div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">B(t) <span className="text-slate-600 font-normal ml-0.5">Behavioral</span></span>
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">B(t) <span className="text-slate-600 font-normal ml-0.5">Behavioral</span></span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: riskColor((c + e) / 2) }}></div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">C+E <span className="text-slate-600 font-normal ml-0.5">Context</span></span>
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">C+E <span className="text-slate-600 font-normal ml-0.5">Context</span></span>
           </div>
         </div>
       </div>
 
       {!risk && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-[#0b0f19]/80">
-          <span className="text-[9px] text-slate-600 uppercase tracking-widest animate-pulse">Awaiting Authentication...</span>
+        <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center">
+          <span className="text-[8px] text-slate-700 uppercase tracking-widest">Start typing to authenticate…</span>
         </div>
       )}
     </div>
