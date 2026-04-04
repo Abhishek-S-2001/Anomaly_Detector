@@ -11,6 +11,7 @@ from core.config import supabase
 from schemas.user_schemas import RegistrationPayload, AuthPayload
 from services.background_tasks import retrain_sliding_window
 from services.feature_extractor import get_6d_features
+from services.risk_service import compute_b_score, compute_risk
 
 def register_user_logic(payload: RegistrationPayload):
     if len(payload.samples) < 3:
@@ -77,13 +78,21 @@ def register_user_logic(payload: RegistrationPayload):
         file_options={"content-type": "application/octet-stream", "x-upsert": "true"}
     )
 
+
     # 7. SAVE TO POSTGRESQL DATABASE
-    user_res = supabase.table("users").upsert({
-        "username": payload.username,
-        "passphrase": payload.passphrase
-    }, on_conflict="username").execute()
-    
-    user_id = user_res.data[0]['id']
+    # First try to find existing user so we can preserve their stored passphrase (password).
+    existing = supabase.table("users").select("id, passphrase").eq("username", payload.username).execute()
+    if existing.data:
+        user_id = existing.data[0]['id']
+        # User exists — do NOT overwrite their password, just update username (no-op effectively)
+        user_res = supabase.table("users").update({}).eq("id", user_id).execute()
+    else:
+        user_res = supabase.table("users").insert({
+            "username": payload.username,
+            "passphrase": payload.passphrase
+        }).execute()
+        user_id = user_res.data[0]['id']
+
 
     supabase.table("keystroke_logs").delete().eq("user_id", user_id).execute()
 
@@ -161,10 +170,19 @@ def authenticate_user_logic(payload: AuthPayload, background_tasks: BackgroundTa
     for f in os.listdir("temp_downloads"):
         os.remove(os.path.join("temp_downloads", f))
 
+    # ── Risk score calculation ────────────────────────────────────────────────
+    b_result = compute_b_score(log_density, meta["security_threshold"])
+    b_score  = b_result["b_score"]
+    # C(t) and E(t) are supplied by the frontend via separate /api/risk/* calls;
+    # default to 0 here so the response always has all fields.
+    risk_data = compute_risk(b=b_score, c=0.0, e=0.0)
+
     return {
         "status": "success",
         "predicted_genuine": predicted_genuine,
         "actual_genuine": payload.is_actual_genuine,
         "score": float(log_density),
-        "threshold": meta["security_threshold"]
+        "threshold": meta["security_threshold"],
+        "b_detail": b_result["b_detail"],  # live calc detail for display
+        **risk_data,
     }

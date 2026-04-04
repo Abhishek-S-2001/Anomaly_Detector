@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import auth, metrics, users, notes
+from api.routes import auth, metrics, users, notes, risk
 
 app = FastAPI(title="KDE Biometrics API")
 
@@ -17,6 +17,7 @@ app.include_router(auth.router, prefix="/api", tags=["Auth"])
 app.include_router(metrics.router, prefix="/api", tags=["Metrics"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(notes.router, prefix="/api/notes", tags=["Notes"])
+app.include_router(risk.router, prefix="/api/risk", tags=["Risk"])
 
 @app.get("/")
 async def root():
