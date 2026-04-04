@@ -1,65 +1,61 @@
 # Anomaly Detector: Continuous Biometric Authentication & Risk Engine
 
-A state-of-the-art, zero-trust authentication platform that replaces static credentials with **continuous behavioral signatures**. This project, developed for a dissertation demonstration, leverages non-parametric machine learning and multi-factor risk aggregation to verify user identity in real-time.
+[![Next.js 15](https://img.shields.io/badge/Frontend-Next.js%2015-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-F7931E?style=for-the-badge&logo=scikit-learn)](https://scikit-learn.org/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
+
+A state-of-the-art, **Zero-Trust Behavioral Authentication** platform developed for a university dissertation. Anomaly Detector replaces static binary login gates with a **continuous biometric pulse**, verifying identity throughout the entire user session without friction.
 
 ---
 
-
-![System Dashboard](./kde-authenticator/public/KDE_Dashboard.png)
-
-## 🚀 Live Demonstration
-
-Experience the "Secure Vault" and biometric profiling live:
-
-*   **Frontend UI (Next.js):** [https://kde-authenticator.vercel.app](https://kde-authenticator.vercel.app)
-*   **Backend API (FastAPI):** [https://anomaly-detector-x35v.onrender.com/](https://anomaly-detector-x35v.onrender.com/)
+## 🖥️ System Dashboard
+![Anomaly Detector Dashboard](./kde-authenticator/public/anomaly_detector.png)
 
 ---
 
-## 🧠 The Science: Continuous Biometrics
+## 🧠 Core Methodology
 
-Traditional authentication happens once at the "front door." Anomaly Detector monitors identity **throughout the entire session** by analyzing *how* a user interacts with the system.
+Traditional authentication is a "gate" you pass once. Anomaly Detector is a **"heartbeat"** that monitors identity by analyzing the unique rhythmic cadence of your muscle memory.
 
-### 1. Keystroke Dynamics — The "Behavioral Signature" $B(t)$
-The system captures timing data at millisecond precision:
-*   **Dwell Time:** Duration a key is held down.
-*   **Flight Time:** Time interval between releasing one key and pressing the next.
-*   **Hold Time:** Total duration from press to release for specific sequences.
+### 1. The Behavioral Signature $B(t)$
+The system captures sub-millisecond DOM events to extract a 6-dimensional feature vector:
+- **Dwell Time:** Physical duration a key is held.
+- **Flight Time:** Transition interval between keys.
+- **Hold Time:** Cumulative duration of keystroke pairs.
+- **Consistency ($ \sigma $):** Statistical variance capturing typing steadiness.
 
-### 2. High-Dimensional Modeling (KDE + PCA)
-Since raw timing data is highly correlated and high-dimensional, the system uses:
-*   **PCA (Principal Component Analysis):** To reduce 6-dimensional feature vectors into a projectable 2D space.
-*   **KDE (Kernel Density Estimation):** To build a non-parametric probability density function of the user's "genuine" typing rhythm.
+### 2. Gaussian Kernel Density Estimation (KDE)
+The system builds a non-parametric probability density function of a user's "genuine" typing rhythm. 
+$$f̂_h(x) = \frac{1}{nh} \sum_{i=1}^n K\left(\frac{x - x_i}{h}\right)$$
+Unlike simple centroid models, KDE captures the multi-modal "cloud" of natural behavior, allowing for high precision without the rigid constraints of parametric distributions.
 
-### 3. The Multi-Factor Risk Engine $R(t)$
-The final authentication decision is an aggregate of three core risk vectors:
-$$R(t) = w_b B(t) + w_c C(t) + w_e E(t)$$
+### 3. PCA-Driven Dimensionality Reduction
+To enable real-time visualization and remove feature correlation (e.g., between Dwell and Hold times), a 6D $\rightarrow$ 2D **Principal Component Analysis** projection is applied before scoring.
 
-| Vector | Name | Description | Weight |
-| :--- | :--- | :--- | :--- |
-| **$B(t)$** | **Behavioral** | KDE log-likelihood distance from biometric baseline. | 50% |
-| **$C(t)$** | **Contextual** | IP history, Time-of-day consistency, and Login Velocity. | 30% |
-| **$E(t)$** | **Environmental** | Device fingerprint, User-Agent, and VPN/Proxy detection. | 20% |
+### 4. Aggregated Risk Engine $R(t)$
+The final authentication verdict is a weighted composite of three independent risk vectors:
+$$R(t) = 0.50 \cdot B(t) + 0.30 \cdot C(t) + 0.20 \cdot E(t)$$
+
+| Vector | Category | Attributes Monitored |
+| :--- | :--- | :--- |
+| **$B(t)$** | **Behavioral** | KDE Log-Likelihood, PCA Euclidean Distance. |
+| **$C(t)$** | **Contextual** | Hour Consistency, Geolocation (IP-based), Login Velocity. |
+| **$E(t)$** | **Environmental** | FNV-1a Device Fingerprint, VPN/Proxy usage, User-Agent. |
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🏗️ System Architecture
+![Architecture Diagram](./kde-authenticator/public/anomaly_detector_architecture.svg)
 
-### Frontend: Next.js 15 + React
-*   **Real-time Capture:** Custom hooks for low-level DOM event listeners.
-*   **Visualizations:** D3-inspired SVG gauges and dynamic KDE plot rendering.
-*   **State Management:** React Context for theme (Light/Dark) and Identity orchestration.
-*   **Styling:** Modern, high-contrast TailwindCSS with full semantic token support.
+---
 
-### Backend: FastAPI + Scikit-Learn
-*   **Processing:** Feature extraction and vectorization in Python.
-*   **ML Pipeline:** PCA transformation and KDE scoring via Scikit-Learn.
-*   **Plotting:** Dynamic Matplotlib generation returned as Base64 URI.
-*   **Asynchronous Tasks:** Background retraining via a sliding window of recent genuine samples.
+## 🛡️ Academic Ethics & Privacy
 
-### Infrastructure: Supabase
-*   **Database:** PostgreSQL for logs, user metadata, and contextual events.
-*   **Storage:** Secure S3-compatible buckets for serialized ML models (`.pkl`).
+This project is built with a **Zero-Knowledge Architecture** dedicated to participant privacy:
+- **No Text Storage:** Raw keystroke content (the actual letters typed) is discarded in browser memory instantly after computing timing differentials.
+- **Data Minimization:** Only numerical floats (e.g., `120.5ms`) cross the network.
+- **Instant Erasure:** Deleting a profile wipes the PostgreSQL metadata, the Cloud S3 `.pkl` models, and all historical timing logs.
 
 ---
 
@@ -67,57 +63,47 @@ $$R(t) = w_b B(t) + w_c C(t) + w_e E(t)$$
 
 ```text
 ANOMALY_DETECTOR/
-├── kde-authenticator/      # Next.js Application
-│   ├── app/                # Root Layout & Identity Orchestration
-│   ├── components/         # Dashboard UI (RiskGauge, PerformanceDashboard, NoteEditor)
-│   ├── contexts/           # Theme and Auth state providers
-│   └── hooks/              # Biometric capture (useKeystrokes, useDeviceFingerprint)
+├── kde-authenticator/      # Next.js Frontend (Identity & Visualization)
+│   ├── app/about/          # Full Technical Documentation & Math
+│   ├── components/         # SVG Gauges, KDE Maps, ROC Curves
+│   └── hooks/              # Precision Timing Capture (performance.now)
 │
-├── kde-backend/            # Python FastAPI Service
-│   ├── api/                # REST endpoints (auth, registration, metrics)
-│   ├── services/           # ML logic, Risk Engine, and Plotting
-│   ├── core/               # Supabase & Environment configuration
-│   └── schemas/            # Pydantic data models
+├── kde-backend/            # FastAPI ML Service
+│   ├── api/                # REST Gateways
+│   ├── services/           # Scikit-Learn Pipelines & Plotting
+│   └── core/               # Supabase Integration & Security
 │
-└── README.md               # You are here
+└── README.md               # Overview & Setup Guide
 ```
 
 ---
 
-## 🚦 Local Setup
+## 🚦 Installation & Setup
 
-### 1. Prerequisites
-*   Node.js (v18+) & Python (v3.10+)
-*   Supabase Account (Free Tier sufficient)
-
-### 2. Backend Installation
+### 1. Backend (FastAPI)
 ```bash
 cd kde-backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
-Create a `.env` with `SUPABASE_URL` and `SUPABASE_KEY`.
-```bash
 uvicorn main:app --reload
 ```
+*Requires `.env` with `SUPABASE_URL` and `SUPABASE_KEY`.*
 
-### 3. Frontend Installation
+### 2. Frontend (Next.js 15)
 ```bash
 cd kde-authenticator
 npm install
 npm run dev
 ```
+*Navigate to `http://localhost:3000` to begin.*
 
 ---
 
-## 🎯 Demonstration Guide
+## ✉️ Researcher Contact
+**Abhishek Shekhawat**  
+*Principal Investigator (Dissertation Project)*
 
-1.  **Register:** Create a profile and type the passphrase exactly 5 times naturally.
-2.  **Verify:** Enter the "Secure Vault" and start writing notes. Watch $B(t)$ adjust your Risk Gauge.
-3.  **Impostor Test:** Use the "Simulate Impostor" toggle to see how the system reacts to mismatched behavioral patterns and contextual anomalies.
-4.  **Observe Retraining:** Successful entries contribute to your "KDE Cloud," visible in the Live Performance Dashboard.
+- **Email:** [abhishek.shekhawat.1920@gmail.com](mailto:abhishek.shekhawat.1920@gmail.com)
+- **LinkedIn:** [linkedin.com/in/abhishek-shekhawat/](https://www.linkedin.com/in/abhishek-shekhawat/)
 
 ---
-
-**Disclaimer:** This project is a dissertation prototype. While it demonstrates production-grade concepts, it is intended for educational and research purposes in behavioral biometrics.
+**Disclaimer:** This is a dissertation prototype intended for research purposes. Developed with high-precision behavioral modeling to demonstrate modern zero-trust paradigms.
